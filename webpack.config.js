@@ -1,4 +1,4 @@
-var debug = process.env.NODE_ENV !== 'prod';
+var debug = true;
 var webpack = require('webpack');
 var path = require('path');
 module.exports = {

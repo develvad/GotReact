@@ -1,11 +1,24 @@
 import React, { Component} from 'react';
-import Title from './title'
-import Results from './results'
+import Title from './title';
+import Results from './results';
 import Data from '../../data/got';
+import SearchForm from './form';
 
 function search(filter, characters){
     return characters.filter((personaje) => {
-        return personaje.name.indexOf(filter.name) !== -1 || personaje.actor.indexOf(filter.name) !== -1;
+        return (
+            // Filtro personaje
+            (personaje.name.toLowerCase().indexOf(filter.name.toLowerCase()) !== -1 || personaje.actor.toLowerCase().indexOf(filter.name.toLowerCase()) !== -1)  
+            &&
+            // Filtro Familia
+            (!filter.family || personaje.family === filter.family) 
+            // Filtro temporadas
+            &&
+            (!filter.seasons.length || filter.seasons.every(x => personaje.seasons.indexOf(x) !== -1)) 
+            // Flitro Vivo
+            &&
+            (!filter.aliveOnly || personaje.alive)
+        );  
     });
 }
 
@@ -38,67 +51,28 @@ export default class Buscador extends React.Component {
             allSeasons: extractSeasons(Data.characters),
             filter: {
                 name: '',
-                family: ''
+                family: '',
+                seasons: [],
+                aliveOnly: false
             }
         }
+        this.handleQueryChange = this.handleQueryChange.bind(this);
     }
+    
+    handleQueryChange(change) {
+        const newFilter = Object.assign({}, this.state.filter, change);
+        this.setState({
+            filter: newFilter
+        })
+    }
+
     render(){ 
+        console.log('filtro: ', this.state.filter);
         const characters = search(this.state.filter, this.state.characters);
         return(
             <div className="search-engine">
                 <Title text= {'Buscador de Juego de Tronos VIP'} />
-                <div className="search-form">
-                    <form>
-                        <div className="row">
-                        <div className="col one-half">
-                            <label htmlFor="character">Actor / personaje</label>
-                            <input type="text" name="character" />
-                        </div>
-                        <div className="col one-half">
-                            <label htmlFor="family">Familia</label>
-                            <select name="family">
-                            <option value="stark">Todas</option>
-                            <option value="stark">Stark</option>
-                            <option value="stark">Stark</option>
-                            <option value="stark">Stark</option>
-                            <option value="stark">Stark</option>
-                            <option value="stark">Stark</option>
-                            </select>
-                        </div>
-                        </div>
-                        <div className="row">
-                        <div className="col one-half">
-                            <label htmlFor="alive">Sólo personajes vivos</label>
-                            <input type="checkbox" name="alive" />
-                        </div>
-                            <div className="col one-half">
-                                <fieldset>
-                                    <legend>Aparece en temporada</legend>
-                                    <div className="season-option">
-                                        1
-                                        <input type="checkbox" name="s1" />
-                                    </div>
-                                    <div className="season-option">
-                                        2
-                                        <input type="checkbox" name="s2" />
-                                    </div>
-                                    <div className="season-option">
-                                        3
-                                        <input type="checkbox" name="s3" />
-                                    </div>
-                                    <div className="season-option">
-                                        4
-                                        <input type="checkbox" name="s4" />
-                                    </div>
-                                    <div className="season-option">
-                                        5
-                                        <input type="checkbox" name="s5" />
-                                    </div>
-                                </fieldset>
-                            </div>
-                    </div>
-                </form>
-                </div>
+                <SearchForm familias={this.state.familyNames} allSeasons= { this.state.allSeasons } filter={this.state.filter} onQueryChange={this.handleQueryChange} />
                 <Results items={ characters } />
         </div>
         );
